@@ -10,7 +10,7 @@ USER="mahmoudkassem30"
 REPO="Printer"
 BRANCH="main"
 
-VERSION_URL="https://raw.githubusercontent.com/mahmoudkassem30/Printers-Tools/refs/heads/main/Ver.TXT"
+VERSION_URL="https://raw.githubusercontent.com/mahmoudkassem30/Printers-Tools/refs/heads/main/version.txt"
 SCRIPT_URL="https://raw.githubusercontent.com/mahmoudkassem30/Printers-Tools/refs/heads/main/printers.sh"
 
 check_for_updates() {
