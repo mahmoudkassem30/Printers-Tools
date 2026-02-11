@@ -10,8 +10,8 @@ USER="mahmoudkassem30"
 REPO="Printers-Tools"
 BRANCH="main"
 
-VERSION_URL="https://raw.githubusercontent.com/mahmoudkassem30/Printers-Tools/main/version.txt"
-SCRIPT_URL="https://raw.githubusercontent.com/mahmoudkassem30/Printers-Tools/main/printers.sh"
+VERSION_URL="https://api.github.com/repos/$USER/$REPO/contents/version.txt?ref=$BRANCH"
+SCRIPT_URL="https://api.github.com/repos/$USER/$REPO/contents/version.txt?ref=$BRANCH"
 
 check_for_updates() {
     if ! ping -c 1 -W 2 google.com &>/dev/null; then return; fi
