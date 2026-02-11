@@ -11,30 +11,42 @@ REPO="Printers-Tools"
 BRANCH="main"
 
 VERSION_URL="https://api.github.com/repos/$USER/$REPO/contents/version.txt?ref=$BRANCH"
-SCRIPT_URL="https://api.github.com/repos/$USER/$REPO/contents/version.txt?ref=$BRANCH"
+SCRIPT_URL="https://api.github.com/repos/$USER/$REPO/contents/printers.sh?ref=$BRANCH"
 
 check_for_updates() {
     if ! ping -c 1 -W 2 google.com &>/dev/null; then return; fi
 
-    REMOTE_VERSION=$(curl -sL -H "Authorization: token $TOKEN" --connect-timeout 5 "$VERSION_URL" | tr -d '[:space:]')
+    REMOTE_VERSION=$(curl -f -sL -H "Authorization: token $TOKEN" \
+         -H "Accept: application/vnd.github.v3.raw" \
+         --connect-timeout 5 "$VERSION_URL" | tr -d '[:space:]')
+
+    if [ -z "$REMOTE_VERSION" ]; then
+        return
+    fi
 
     if [[ "$REMOTE_VERSION" > "$CURRENT_VERSION" ]]; then
-        zenity --question --title "تحديث خاص متوفر" \
-               --text "يوجد إصدار جديد ($REMOTE_VERSION). هل تريد التحديث؟" \
+        zenity --question --title "تحديث متوفر (Private API)" \
+               --text "يوجد إصدار جديد ($REMOTE_VERSION). هل تريد التحديث الآن؟" \
                --width=350 --window-icon="$SYS_ICON" 2>/dev/null
         
         if [ $? -eq 0 ]; then
-            if curl -sL -H "Authorization: token $TOKEN" "$SCRIPT_URL" -o /tmp/printers_new.sh; then
+            if curl -f -sL -H "Authorization: token $TOKEN" \
+                -H "Accept: application/vnd.github.v3.raw" \
+                "$SCRIPT_URL" -o /tmp/printers_new.sh; then
+                
                 mv /tmp/printers_new.sh /usr/local/bin/it-aman
                 chmod +x /usr/local/bin/it-aman
-                zenity --info --text "تم التحديث بنجاح إلى $REMOTE_VERSION." 2>/dev/null
+                chown root:root /usr/local/bin/it-aman
+                
+                zenity --info --title "نجاح" --text "تم التحديث إلى $REMOTE_VERSION بنجاح.\nيرجى إعادة تشغيل الأداة." 2>/dev/null
                 exit 0
             else
-                zenity --error --text "فشل التحديث. تأكد من صلاحية الـ Token." 2>/dev/null
+                zenity --error --text "فشل تحميل ملف التحديث. تأكد من صلاحيات التوكن (Repo Scope)." 2>/dev/null
             fi
         fi
     fi
 }
+check_for_updates
 handle_error() {
     local error_point="$1"
     local REAL_USER=${SUDO_USER:-$USER}
