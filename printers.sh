@@ -4,7 +4,7 @@
 #  Created by: Mahmoud Rabia Kassem (Specialist IT Admin)
 #  Version: 1.0 - Final Stable AHA
 # ===============================================================
-CURRENT_VERSION="1.0"
+CURRENT_VERSION="1.1"
 TOKEN="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"
 USER="mahmoudkassem30"
 REPO="Printer"
@@ -58,7 +58,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 REAL_USER=${SUDO_USER:-$USER}
-TOOL_NAME="IT Aman - Printer Tool v 1.0"
+TOOL_NAME="IT Aman - Printer Tool v 1.1"
 SYS_ICON="printer-error"
 
 
