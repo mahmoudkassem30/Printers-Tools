@@ -7,7 +7,7 @@
 CURRENT_VERSION="1.1"
 TOKEN="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"
 USER="mahmoudkassem30"
-REPO="Printer"
+REPO="Printers-Tools"
 BRANCH="main"
 
 VERSION_URL="https://raw.githubusercontent.com/mahmoudkassem30/Printers-Tools/refs/heads/main/version.txt"
