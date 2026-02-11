@@ -2,43 +2,50 @@
 # ===============================================================
 #  Script: it_aman_printer_fix.sh
 #  Created by: Mahmoud Rabia Kassem (Specialist IT Admin)
-#  Version: 1.1 - Final Stable AHA
+#  Version: 1.0 - Final Stable 
 # ===============================================================
-CURRENT_VERSION="1.1"
+CURRENT_VERSION="1.0"
 TOKEN="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"
 USER="mahmoudkassem30"
 REPO="Printers-Tools"
 BRANCH="main"
 
+# روابط الـ API الرسمية للمستودعات الخاصة
 VERSION_URL="https://api.github.com/repos/$USER/$REPO/contents/version.txt?ref=$BRANCH"
 SCRIPT_URL="https://api.github.com/repos/$USER/$REPO/contents/printers.sh?ref=$BRANCH"
 
 check_for_updates() {
+    # 1. التأكد من وجود إنترنت
     if ! ping -c 1 -W 2 google.com &>/dev/null; then return; fi
 
+    # 2. جلب رقم الإصدار (GitHub API يرسل البيانات مشفرة Base64 لذا سنقوم بفكها)
+    # نستخدم Header "Accept: application/vnd.github.v3.raw" لجلب النص مباشرة
     REMOTE_VERSION=$(curl -f -sL -H "Authorization: token $TOKEN" \
          -H "Accept: application/vnd.github.v3.raw" \
          --connect-timeout 5 "$VERSION_URL" | tr -d '[:space:]')
 
     if [ -z "$REMOTE_VERSION" ]; then
-        return
+        return # فشل الاتصال أو التوكن غير صحيح
     fi
 
+    # 3. المقارنة
     if [[ "$REMOTE_VERSION" > "$CURRENT_VERSION" ]]; then
-        zenity --question --title "تحديث متوفر (Private API)" \
+        zenity --question --title "تحديث متوفر New Update" \
                --text "يوجد إصدار جديد ($REMOTE_VERSION). هل تريد التحديث الآن؟" \
                --width=350 --window-icon="$SYS_ICON" 2>/dev/null
         
         if [ $? -eq 0 ]; then
+            # تحميل السكريبت الجديد عبر الـ API
             if curl -f -sL -H "Authorization: token $TOKEN" \
                 -H "Accept: application/vnd.github.v3.raw" \
                 "$SCRIPT_URL" -o /tmp/printers_new.sh; then
                 
+                # استبدال السكريبت القديم
                 mv /tmp/printers_new.sh /usr/local/bin/it-aman
                 chmod +x /usr/local/bin/it-aman
                 chown root:root /usr/local/bin/it-aman
                 
-                zenity --info --title "نجاح" --text "تم التحديث إلى $REMOTE_VERSION بنجاح.\nيرجى إعادة تشغيل الأداة." 2>/dev/null
+                zenity --info --title "Done Updated /نجاح" --text "تم التحديث إلى $REMOTE_VERSION بنجاح.\nيرجى إعادة تشغيل الأداة." 2>/dev/null
                 exit 0
             else
                 zenity --error --text "فشل تحميل ملف التحديث. تأكد من صلاحيات التوكن (Repo Scope)." 2>/dev/null
