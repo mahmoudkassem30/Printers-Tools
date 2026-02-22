@@ -70,7 +70,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 REAL_USER=${SUDO_USER:-$USER}
-TOOL_NAME="IT Aman - Printer Tool v 1.1"
+TOOL_NAME="IT Aman - Printer Tool v 1.0"
 SYS_ICON="printer-error"
 
 
