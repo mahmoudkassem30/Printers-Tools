@@ -2,9 +2,9 @@
 # ===============================================================
 #  Script: it_aman_printer_fix.sh
 #  Created by: Mahmoud Rabia Kassem (Specialist IT Admin)
-#  Version: 1.0 - Final Stable 
+#  Version: 1.1 - Final Stable 
 # ===============================================================
-CURRENT_VERSION="1.0"
+CURRENT_VERSION="1.1"
 TOKEN="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"
 USER="mahmoudkassem30"
 REPO="Printers-Tools"
@@ -21,7 +21,7 @@ check_for_updates() {
          --connect-timeout 5 "$VERSION_URL" | tr -d '[:space:]')
 
     if [ -z "$REMOTE_VERSION" ]; then
-        return
+        return 
     fi
 
     if [[ "$REMOTE_VERSION" > "$CURRENT_VERSION" ]]; then
@@ -70,7 +70,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 REAL_USER=${SUDO_USER:-$USER}
-TOOL_NAME="IT Aman - Printer Tool v 1.0"
+TOOL_NAME="IT Aman - Printer Tool v 1.1"
 SYS_ICON="printer-error"
 
 
@@ -96,6 +96,9 @@ if [ -z "$USER_LANG" ]; then exit 0; fi
 
 if [ "$USER_LANG" == "1" ]; then
     TXT_MENU="قائمة الخدمات المتاحة:"
+    TXT_SELECT_VIDEO="اختار لينك اذا لم يعمل اللينك الاول اختار الثاني :"
+    TXT_VIDEO_1="Google Drive"
+    TXT_VIDEO_2="DropBox"
     TXT_O1=" معالجة حشر الورق (ارشادات)"
     TXT_O2=" فحص النظام الذكي (كشف وحل تلقائي)"
     TXT_O3=" اعاده تعريف الطابعه كبيره/حراريه (إصلاح مباشر)"
@@ -115,6 +118,9 @@ if [ "$USER_LANG" == "1" ]; then
 else
     TXT_MENU="Select a task to perform:"
     TXT_O1=" Paper Jam Guide"
+    XT_SELECT_VIDEO="Choose one link; if the first link doesn't work, choose the second.:"
+    TXT_VIDEO_1="Google Dirve"
+    TXT_VIDEO_2="DropBox"
     TXT_O2=" Smart System Diagnostic (Auto Fix)"
     TXT_O3=" Repair Printer (Direct Enable & Clear)"
     TXT_O4=" Quick Fix Print Spooler (General)"
@@ -142,35 +148,53 @@ while true; do
     if [ -z "$CHOICE" ] || [ "$CHOICE" == "6" ]; then exit 0; fi
 
     case "$CHOICE" in
-        1)
-
+1)
             zenity --info --title "$JAM_TITLE" --window-icon="$SYS_ICON" --text "$JAM_MSG" --width=500 2>/dev/null
 
-            sudo -u "$REAL_USER" xdg-open "https://drive.google.com/file/d/1Ir08HroVj6TShF-ZOCiXvbwk8THkED1E/view?usp=drive_link" &>/dev/null &
+            VIDEO_CHOICE=$(zenity --list --title "$JAM_TITLE" --window-icon="$SYS_ICON" \
+                --text "$TXT_SELECT_VIDEO" \
+                --column "ID" --column "Video Description" \
+                "1" "$TXT_VIDEO_1" \
+                "2" "$TXT_VIDEO_2" \
+                --width=400 --height=250 2>/dev/null)
+
+            case "$VIDEO_CHOICE" in
+                "1")
+                    sudo -u "$REAL_USER" xdg-open "https://drive.google.com/file/d/1Ir08HroVj6TShF-ZOCiXvbwk8THkED1E/view?usp=drive_link" &>/dev/null &
+                    ;;
+                "2")
+                    sudo -u "$REAL_USER" xdg-open "https://www.dropbox.com/scl/fi/pg75dydlchtpju7j65kr2/Remove-paper-jam-inside-keyocera-UK-TECH-720p-h264.mp4?rlkey=obb9ghb14yq5l19dv4fdllwfd&st=mw2bixwi&dl=0" &>/dev/null &
+                    ;;
+            esac
             ;;
-        2)
+       
+        2) 
             DIAG_LOG=$(mktemp)
             (
-            echo "10"
+            echo "10"; sleep 0.5
+            # التأكد من تشغيل خدمة CUPS
             if ! systemctl is-active --quiet cups; then 
                 systemctl restart cups; echo -e "$REP_C_FX" >> "$DIAG_LOG"
             fi
             
             echo "40"
+            # تنظيف المهام العالقة
             if [ -n "$(lpstat -o)" ]; then 
-                cancel -a 2>/dev/null; echo -e "$REP_J_FX" >> "$DICD_LOG"
+                cancel -a 2>/dev/null; echo -e "$REP_J_FX" >> "$DIAG_LOG"
             fi
             
             echo "70"
+            # إعادة تفعيل الطابعات المتوقفة (Disabled)
             DISABLED_PRINTERS=$(lpstat -p | grep "disabled" | awk '{print $2}')
             if [ -n "$DISABLED_PRINTERS" ]; then
-                for p in $DISABLED_PRINTERS; do
+                while read -r p; do
                     cupsenable "$p"; cupsaccept "$p"
-                done
+                done <<< "$DISABLED_PRINTERS"
                 echo -e "$REP_E_FX" >> "$DIAG_LOG"
             fi
             echo "100" ) | zenity --progress --title "$TOOL_NAME" --text "$TXT_WAIT" --auto-close 2>/dev/null
             
+            # عرض التقرير النهائي
             if [ ! -s "$DIAG_LOG" ]; then
                 FINAL_MSG="النظام يعمل بشكل جيد، لم يتم العثور على أخطاء برمجية."
             else
@@ -207,4 +231,3 @@ while true; do
             ;;
     esac
 done
-
