@@ -2,9 +2,9 @@
 # ===============================================================
 #  Script: it_aman_printer_fix.sh
 #  Created by: Mahmoud Rabia Kassem (Specialist IT Admin)
-#  Version: 1.0 - Final Stable MF yes
+#  Version: 1.0 - Final Stable For MF
 # ===============================================================
-CURRENT_VERSION="1.1"
+CURRENT_VERSION="1.0"
 TOKEN="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"
 USER="mahmoudkassem30"
 REPO="Printers-Tools"
