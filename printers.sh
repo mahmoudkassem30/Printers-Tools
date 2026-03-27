@@ -2,9 +2,9 @@
 # ===============================================================
 #  Script: it_aman_printer_fix.sh
 #  Created by: Mahmoud Rabia Kassem (Specialist IT Admin)
-#  Version: 1.1 - Final Stable 
+#  Version: 1.2 - Final Stable 
 # ===============================================================
-CURRENT_VERSION="1.1"
+CURRENT_VERSION="1.2"
 TOKEN="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"
 USER="mahmoudkassem30"
 REPO="Printers-Tools"
@@ -70,7 +70,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 REAL_USER=${SUDO_USER:-$USER}
-TOOL_NAME="IT Aman - Printer Tool v 1.1"
+TOOL_NAME="IT Aman - Printer Tool v 1.2"
 SYS_ICON="printer-error"
 
 
