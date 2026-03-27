@@ -2,7 +2,7 @@
 # ===============================================================
 #  Script: it_aman_printer_fix.sh
 #  Created by: Mahmoud Rabia Kassem (Specialist IT Admin)
-#  Version: 1.2 - Final Stable 
+#  Version: 1.2 - Final Stable FOR FS
 # ===============================================================
 CURRENT_VERSION="1.2"
 TOKEN="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"
@@ -14,7 +14,7 @@ VERSION_URL="https://api.github.com/repos/$USER/$REPO/contents/version.txt?ref=$
 SCRIPT_URL="https://api.github.com/repos/$USER/$REPO/contents/printers.sh?ref=$BRANCH"
 
 check_for_updates() {
-    if ! ping -c 1 -W 2 google.com &>/dev/null; then return; fi
+        if ! curl -sf --connect-timeout 3 https://github.com -o /dev/null; then return; fi
 
     REMOTE_VERSION=$(curl -f -sL -H "Authorization: token $TOKEN" \
          -H "Accept: application/vnd.github.v3.raw" \
