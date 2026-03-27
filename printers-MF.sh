@@ -5,7 +5,7 @@
 #  Version: 1.0 - Final Stable MF yes
 # ===============================================================
 CURRENT_VERSION="1.1"
-TOKEN="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"
+TOKEN="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"
 USER="mahmoudkassem30"
 REPO="Printers-Tools"
 BRANCH="main"
