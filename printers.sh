@@ -160,7 +160,7 @@ while true; do
 
             case "$VIDEO_CHOICE" in
                 "1")
-                    sudo -u "$REAL_USER" xdg-open "https://drive.google.com/file/d/1Ir08HroVj6TShF-ZOCiXvbwk8THkED1E/view?usp=drive_link" &>/dev/null &
+                    sudo -u "$REAL_USER" xdg-open "https://drive.google.com/file/d/1e3-7J6hr5yd3uyXSSu8rPJkFwMw8s-My/view?usp=sharing" &>/dev/null &
                     ;;
                 "2")
                     sudo -u "$REAL_USER" xdg-open "https://www.dropbox.com/scl/fi/pg75dydlchtpju7j65kr2/Remove-paper-jam-inside-keyocera-UK-TECH-720p-h264.mp4?rlkey=obb9ghb14yq5l19dv4fdllwfd&st=mw2bixwi&dl=0" &>/dev/null &
