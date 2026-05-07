@@ -3,7 +3,6 @@
 #  developed  : Mahmoud Rabia Kassem — Specialist IT Admin
 #  Version : 1.3 — Final Stable For FS
 # ===============================================================
-احا اشتغلت
 # ────────────────────────────────────────────────────────────────
 #  SECTION 1 — Version & Repository Configuration
 # ────────────────────────────────────────────────────────────────
