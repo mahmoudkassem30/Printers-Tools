@@ -12,7 +12,7 @@ USER="mahmoudkassem30"
 REPO="Printers-Tools"
 BRANCH="main"
 
-VERSION_URL="https://raw.githubusercontent.com/$USER/$REPO/$BRANCH/MF/vversion-MF.txt"
+VERSION_URL="https://raw.githubusercontent.com/$USER/$REPO/$BRANCH/MF/version-MF.txt"
 SCRIPT_URL="https://raw.githubusercontent.com/$USER/$REPO/$BRANCH/MF/printers-MF.sh"
 # ────────────────────────────────────────────────────────────────
 #  SECTION 2 — Auto-Update Function
