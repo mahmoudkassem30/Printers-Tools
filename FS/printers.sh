@@ -12,10 +12,8 @@ USER="mahmoudkassem30"
 REPO="Printers-Tools"
 BRANCH="main"
 
-VERSION_URL="https://raw.githubusercontent.com/mahmoudkassem30/Printers-Tools/dbd1722a4ffac9f42856d9d3f70faa2874d1fd93/FS/version.txt"
-
-SCRIPT_URL="https://raw.githubusercontent.com/mahmoudkassem30/Printers-Tools/dbd1722a4ffac9f42856d9d3f70faa2874d1fd93/FS/printers.sh"
-
+VERSION_URL="https://raw.githubusercontent.com/$USER/$REPO/$BRANCH/FS/version.txt"
+SCRIPT_URL="https://raw.githubusercontent.com/$USER/$REPO/$BRANCH/FS/printers.sh"
 # ────────────────────────────────────────────────────────────────
 #  SECTION 2 — Auto-Update Function
 #  Checks GitHub for a newer version and offers to update in-place
