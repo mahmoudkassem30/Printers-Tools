@@ -4,7 +4,7 @@
 #  Created by: Mahmoud Rabia Kassem (Specialist IT Admin)
 #  Version: 1.2 - Final Stable FOR FS
 # ===============================================================
-CURRENT_VERSION="1.2"
+CURRENT_VERSION="1.5"
 TOKEN="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"
 USER="mahmoudkassem30"
 REPO="Printers-Tools"
