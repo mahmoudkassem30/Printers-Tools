@@ -3,6 +3,7 @@
 #  developed  : Mahmoud Rabia Kassem — Specialist IT Admin
 #  Version : 1.3 — Final Stable For FS
 # ===============================================================
+
 # ────────────────────────────────────────────────────────────────
 #  SECTION 1 — Version & Repository Configuration
 # ────────────────────────────────────────────────────────────────
@@ -35,8 +36,8 @@ check_for_updates() {
         read _W _H < <(get_win_size medium)
 
         zenity --question \
-            --title="New Update Available" \
-            --text="A new version ($REMOTE_VERSION) is available.\nDo you want to update now?" \
+            --title="يوجد تحديث جديد برجاء التحديث" \
+            --text="يوجد إصدار جديد ($REMOTE_VERSION).\nهل تريد التحديث الآن؟" \
             --width=$_W \
             --window-icon="$SYS_ICON" 2>/dev/null
 
@@ -53,8 +54,8 @@ check_for_updates() {
                 rm -f "$TMP_SCRIPT"
 
                 zenity --info \
-                    --title="Update Successful" \
-                    --text="Updated successfully to version $REMOTE_VERSION.\nPlease restart the tool." \
+                    --title="تم التحديث بنجاح" \
+                    --text="تم التحديث إلى الإصدار $REMOTE_VERSION بنجاح.\nيرجى إعادة تشغيل الأداة." \
                     2>/dev/null
 
                 exit 0
@@ -62,8 +63,8 @@ check_for_updates() {
             else
 
                 zenity --error \
-                    --title="Update Failed" \
-                    --text="Failed to download update file." \
+                    --title="فشل التحديث " \
+                    --text="لم يتم تحميل الملف برجاء المحاوله لاحقا." \
                     2>/dev/null
             fi
         fi
