@@ -451,26 +451,35 @@ while true; do
             FALSE "1" "$TXT_O1" \
             FALSE "2" "$TXT_O2" \
             FALSE "3" "$TXT_O5" \
-            FALSE "4" "$TXT_O6" \
+            FALSE "4" "🔒 For Admin" \
+            FALSE "5" "$TXT_O6" \
             --width=$_W --height=$_H 2>/dev/null)
 
         # Map normal-mode IDs to internal handler IDs
         case "$CHOICE" in
             1) CHOICE="1" ;;
             2) CHOICE="2" ;;
-            3) CHOICE="5" ;;   # إصلاح أوامر الطباعة → internal case 5
-            4) exit 0    ;;
-            "") # Empty = cancelled or typed AMMAN trigger
+            3) CHOICE="5" ;;
+            4)
                 SECRET=$(zenity --entry \
-                    --title "$TOOL_NAME" \
+                    --title "🔒 Admin Access" \
                     --window-icon="$SYS_ICON" \
-                    --text "أدخل كود الوصول:" \
+                    --text "Enter access code:" \
                     --width=300 2>/dev/null)
                 if [ "$SECRET" = "AMMAN" ]; then
                     try_admin_unlock
+                elif [ -n "$SECRET" ]; then
+                    read _W _H < <(get_win_size medium)
+                    zenity --error \
+                        --title "❌ Access Denied" \
+                        --window-icon="$SYS_ICON" \
+                        --text "❌ Invalid access code." \
+                        --width=$_W 2>/dev/null
                 fi
                 continue
                 ;;
+            5) exit 0 ;;
+            *) exit 0 ;;
         esac
     else
         CHOICE=$(zenity --list \
