@@ -8,12 +8,12 @@
 #  SECTION 1 — Version & Repository Configuration
 # ────────────────────────────────────────────────────────────────
 CURRENT_VERSION="1.0"
-USER="mahmoudkassem30"
+GH_USER="mahmoudkassem30"
 REPO="Printers-Tools"
 BRANCH="main"
 
-VERSION_URL="https://raw.githubusercontent.com/$USER/$REPO/$BRANCH/MF/version-MF.txt"
-SCRIPT_URL="https://raw.githubusercontent.com/$USER/$REPO/$BRANCH/MF/printers-MF.sh"
+VERSION_URL="https://raw.githubusercontent.com/$GH_USER/$REPO/$BRANCH/MF/version-MF.txt"
+SCRIPT_URL="https://raw.githubusercontent.com/$GH_USER/$REPO/$BRANCH/MF/printers-MF.sh"
 # ────────────────────────────────────────────────────────────────
 #  SECTION 2 — Auto-Update Function
 #  Checks GitHub for a newer version and offers to update in-place
