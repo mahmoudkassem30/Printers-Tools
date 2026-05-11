@@ -860,7 +860,7 @@ while true; do
                 SELECTED_IP=$(echo "$SELECTED_LINE"    | awk -F'\\|\\|' '{print $3}')
                 [ -z "$SELECTED_MODEL" ] && SELECTED_MODEL="Printer"
 
-                PRINTER_NAME="printer-FS"
+                PRINTER_NAME="kyocera-Printer"
                 LPD_URI="lpd://$SELECTED_IP/queue"
 
                 # Resolve Kyocera PPD — prefer ECOSYS M3550idn KPDL driver
