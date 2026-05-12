@@ -318,29 +318,26 @@ set_thermal_defaults() {
 #  Run update check → show welcome splash → define UI strings
 # ────────────────────────────────────────────────────────────────
 check_for_updates
-
-INFO_FILE=$(mktemp)
-cat >> "$INFO_FILE" <<'INFOEOF'
-------------------------------------------------
-        IT Aman - Printer Support Tool For FS
-------------------------------------------------
-Developed by: Mahmoud Rabia Kassem
-Specialist IT Admin
-
-This tool helps in resolving common printing issues.
-© All Rights Reserved 2026
-INFOEOF
-
-refresh_sys_icon
-read _W _H < <(get_win_size medium)
-zenity --text-info \
-    --title "Welcome" \
-    --window-icon="$SYS_ICON" \
-    --filename="$INFO_FILE" \
-    --width=$_W --height=$_H \
-    --checkbox="Proceed / استمرار" 2>/dev/null
-rm -f "$INFO_FILE"
-
+# ── Welcome screen ───────────────────────────────────────────
+show_welcome() {
+    zenity --info \
+        --title="IT-Aman — Printers-Tools For FS V1.3 " \
+        --text="\n<b><big>   IT-Aman — Printers-Tools For FS V1.3   </big></b>\n\n\
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\
+  <b>Developed by:</b>  Mahmoud Rabia Kassem\n\
+  <b>Title:</b>         Specialist IT Admin\n\
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n\
+<b>This tool makes work easier</b>\n\n\
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n\
+<i>Version 1.3 </i>\n\n\
+<i>© All Rights Reserved 2026 - IT-Aman</i>\n" \
+        --width=500 \
+        --height=380 \
+        --ok-label="Continue ▶" \
+        2>/dev/null
+    [[ $? -ne 0 ]] && { echo -e "${YELLOW}[INFO]${RESET} Cancelled by user."; exit 0; }
+}
+show_welcome
 # ────────────────────────────────────────────────────────────────
 #  SECTION 12 — UI String Definitions (Arabic)
 # ────────────────────────────────────────────────────────────────
