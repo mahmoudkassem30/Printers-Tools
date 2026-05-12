@@ -1,19 +1,19 @@
 #!/bin/bash
 # ===============================================================
 #  developed  : Mahmoud Rabia Kassem — Specialist IT Admin
-#  Version : 1.0 — Final Stable For MF
+#  Version : 1.3 — Final Stable For FS
 # ===============================================================
 
 # ────────────────────────────────────────────────────────────────
 #  SECTION 1 — Version & Repository Configuration
 # ────────────────────────────────────────────────────────────────
-CURRENT_VERSION="1.0"
-GH_USER="mahmoudkassem30"
+CURRENT_VERSION="1.3"
+USER="mahmoudkassem30"
 REPO="Printers-Tools"
 BRANCH="main"
 
-VERSION_URL="https://raw.githubusercontent.com/$GH_USER/$REPO/$BRANCH/MF/version-MF.txt"
-SCRIPT_URL="https://raw.githubusercontent.com/$GH_USER/$REPO/$BRANCH/MF/printers-MF.sh"
+VERSION_URL="https://raw.githubusercontent.com/$USER/$REPO/$BRANCH/FS/version.txt"
+SCRIPT_URL="https://raw.githubusercontent.com/$USER/$REPO/$BRANCH/FS/printers.sh"
 # ────────────────────────────────────────────────────────────────
 #  SECTION 2 — Auto-Update Function
 #  Checks GitHub for a newer version and offers to update in-place
@@ -121,7 +121,7 @@ fi
 # ────────────────────────────────────────────────────────────────
 #  SECTION 6 — Tool Identity & Icon Configuration
 # ────────────────────────────────────────────────────────────────
-TOOL_NAME="IT Aman - Printer Tool For MF V1.0"
+TOOL_NAME="IT Aman - Printer Tool For FS v 1.3"
 SYS_ICON_NAME="it-aman-printer"
 SYS_ICON_PATH=""
 SYS_ICON_URL="https://raw.githubusercontent.com/mahmoudkassem30/Printers-Tools/main/sources/Icons/icon-printer.png"
@@ -318,29 +318,26 @@ set_thermal_defaults() {
 #  Run update check → show welcome splash → define UI strings
 # ────────────────────────────────────────────────────────────────
 check_for_updates
-
-INFO_FILE=$(mktemp)
-cat >> "$INFO_FILE" <<'INFOEOF'
-------------------------------------------------
-        IT Aman - Printer Support Tool For MF
-------------------------------------------------
-Developed by: Mahmoud Rabia Kassem
-Specialist IT Admin
-
-This tool helps in resolving common printing issues.
-© All Rights Reserved 2026
-INFOEOF
-
-refresh_sys_icon
-read _W _H < <(get_win_size medium)
-zenity --text-info \
-    --title "Welcome" \
-    --window-icon="$SYS_ICON" \
-    --filename="$INFO_FILE" \
-    --width=$_W --height=$_H \
-    --checkbox="Proceed / استمرار" 2>/dev/null
-rm -f "$INFO_FILE"
-
+# ── Welcome screen ───────────────────────────────────────────
+show_welcome() {
+    zenity --info \
+        --title="IT-Aman — Printers-Tools For FS V1.3 " \
+        --text="\n<b><big>   IT-Aman — Printers-Tools For FS V1.3   </big></b>\n\n\
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\
+  <b>Developed by:</b>  Mahmoud Rabia Kassem\n\
+  <b>Title:</b>         Specialist IT Admin\n\
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n\
+<b>This tool makes work easier</b>\n\n\
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n\
+<i>Version 1.3 </i>\n\n\
+<i>© All Rights Reserved 2026 - IT-Aman</i>\n" \
+        --width=500 \
+        --height=380 \
+        --ok-label="Continue ▶" \
+        2>/dev/null
+    [[ $? -ne 0 ]] && { echo -e "${YELLOW}[INFO]${RESET} Cancelled by user."; exit 0; }
+}
+show_welcome
 # ────────────────────────────────────────────────────────────────
 #  SECTION 12 — UI String Definitions (Arabic)
 # ────────────────────────────────────────────────────────────────
@@ -361,145 +358,26 @@ REP_J_FX="- تم تنظيف مهام الطباعة العالقة."
 REP_E_FX="- تم اكتشاف طابعات معطلة وإعادة تنشيطها."
 
 # ────────────────────────────────────────────────────────────────
-#  SECTION 13 — Admin Mode State
-#  ADMIN_MODE=0  → normal user  (options 3 & 4 hidden)
-#  ADMIN_MODE=1  → unlocked for this session only
-# ────────────────────────────────────────────────────────────────
-ADMIN_MODE=0
-
-# ────────────────────────────────────────────────────────────────
-#  SECTION 14 — Admin Unlock Function
-#  Triggered when user types AMMAN in the entry prompt.
-#  Verifies against the system root password via su.
-# ────────────────────────────────────────────────────────────────
-try_admin_unlock() {
-    read _W _H < <(get_win_size medium)
-
-    # Welcome message
-    zenity --info \
-        --title "🔐 Administrator Access" \
-        --window-icon="$SYS_ICON" \
-        --text "🔐 Welcome, Administrator\n\nThis section grants access to advanced printer management.\nPlease authenticate to continue.\n\nEnter the root password registered on this machine." \
-        --width=$_W 2>/dev/null
-
-    # Ask for root password
-    ENTERED_PASS=$(zenity --password \
-        --title "🔐 Authentication Required" \
-        --window-icon="$SYS_ICON" 2>/dev/null)
-
-    # User cancelled
-    [ -z "$ENTERED_PASS" ] && return
-
-    # Verify password against root account via PAM (works even when already root)
-    AUTH_OK=0
-    if command -v python3 &>/dev/null && python3 -c "import pam" 2>/dev/null; then
-        python3 - "$ENTERED_PASS" <<'PYEOF' && AUTH_OK=1
-import sys, pam
-p = pam.pam()
-sys.exit(0 if p.authenticate("root", sys.argv[1]) else 1)
-PYEOF
-    elif command -v pamtester &>/dev/null; then
-        echo "$ENTERED_PASS" | pamtester login root authenticate 2>/dev/null && AUTH_OK=1
-    else
-        # Fallback: use su via expect-style trick with a dedicated pty
-        SHADOW_HASH=$(getent shadow root 2>/dev/null | cut -d: -f2)
-        if [ -n "$SHADOW_HASH" ] && [ "$SHADOW_HASH" != "*" ] && [ "$SHADOW_HASH" != "!" ]; then
-            COMPUTED=$(python3 -c "
-import crypt, sys
-h = '$SHADOW_HASH'
-print(crypt.crypt(sys.argv[1], h))
-" "$ENTERED_PASS" 2>/dev/null)
-            [ "$COMPUTED" = "$SHADOW_HASH" ] && AUTH_OK=1
-        fi
-    fi
-    if [ "$AUTH_OK" -eq 1 ]; then
-        ADMIN_MODE=1
-        read _W _H < <(get_win_size medium)
-        zenity --info \
-            --title "✅ Access Granted" \
-            --window-icon="$SYS_ICON" \
-            --text "✅ Authentication successful.\n\nAdvanced options are now unlocked for this session." \
-            --width=$_W 2>/dev/null
-    else
-        read _W _H < <(get_win_size medium)
-        zenity --error \
-            --title "❌ Access Denied" \
-            --window-icon="$SYS_ICON" \
-            --text "❌ Incorrect password.\n\nAccess denied." \
-            --width=$_W 2>/dev/null
-    fi
-    unset ENTERED_PASS AUTH_OK SHADOW_HASH COMPUTED
-}
-
-# ────────────────────────────────────────────────────────────────
-#  SECTION 15 — Main Menu Loop
+#  SECTION 13 — Main Menu Loop
 # ────────────────────────────────────────────────────────────────
 while true; do
     refresh_sys_icon
     read _W _H < <(get_win_size large)
+    CHOICE=$(zenity --list \
+        --title "$TOOL_NAME" \
+        --window-icon="$SYS_ICON" \
+        --text "$TXT_MENU" \
+        --radiolist \
+        --column "Select" --column "ID" --column "Option" \
+        FALSE "1" "$TXT_O1" \
+        FALSE "2" "$TXT_O2" \
+        FALSE "3" "$TXT_O3" \
+        FALSE "4" "$TXT_O4" \
+        FALSE "5" "$TXT_O5" \
+        FALSE "6" "$TXT_O6" \
+        --width=$_W --height=$_H 2>/dev/null)
 
-    # Build menu based on ADMIN_MODE
-    # Normal mode  : 1,2,3(fix),4(exit)          — options 3&4 printer mgmt hidden
-    # Admin mode   : 1,2,3(printers),4(thermal),5(fix),6(exit)
-    if [ "$ADMIN_MODE" -eq 0 ]; then
-        CHOICE=$(zenity --list \
-            --title "$TOOL_NAME" \
-            --window-icon="$SYS_ICON" \
-            --text "$TXT_MENU" \
-            --radiolist \
-            --column "Select" --column "ID" --column "Option" \
-            FALSE "1" "$TXT_O1" \
-            FALSE "2" "$TXT_O2" \
-            FALSE "3" "$TXT_O5" \
-            FALSE "4" "🔒 For Admin" \
-            FALSE "5" "$TXT_O6" \
-            --width=$_W --height=$_H 2>/dev/null)
-
-        # Map normal-mode IDs to internal handler IDs
-        case "$CHOICE" in
-            1) CHOICE="1" ;;
-            2) CHOICE="2" ;;
-            3) CHOICE="5" ;;
-            4)
-                SECRET=$(zenity --entry \
-                    --title "🔒 Admin Access" \
-                    --window-icon="$SYS_ICON" \
-                    --text "Enter access code:" \
-                    --width=300 2>/dev/null)
-                if [ "$SECRET" = "AMMAN" ]; then
-                    try_admin_unlock
-                elif [ -n "$SECRET" ]; then
-                    read _W _H < <(get_win_size medium)
-                    zenity --error \
-                        --title "❌ Access Denied" \
-                        --window-icon="$SYS_ICON" \
-                        --text "❌ Invalid access code." \
-                        --width=$_W 2>/dev/null
-                fi
-                continue
-                ;;
-            5) exit 0 ;;
-            *) exit 0 ;;
-        esac
-    else
-        CHOICE=$(zenity --list \
-            --title "$TOOL_NAME" \
-            --window-icon="$SYS_ICON" \
-            --text "$TXT_MENU" \
-            --radiolist \
-            --column "Select" --column "ID" --column "Option" \
-            FALSE "1" "$TXT_O1" \
-            FALSE "2" "$TXT_O2" \
-            FALSE "3" "$TXT_O3" \
-            FALSE "4" "$TXT_O4" \
-            FALSE "5" "$TXT_O5" \
-            FALSE "6" "$TXT_O6" \
-            --width=$_W --height=$_H 2>/dev/null)
-
-        if [ -z "$CHOICE" ] || [ "$CHOICE" == "6" ]; then exit 0; fi
-    fi
-
-    [ -z "$CHOICE" ] && continue
+    if [ -z "$CHOICE" ] || [ "$CHOICE" == "6" ]; then exit 0; fi
 
     case "$CHOICE" in
 
@@ -860,7 +738,7 @@ while true; do
                 SELECTED_IP=$(echo "$SELECTED_LINE"    | awk -F'\\|\\|' '{print $3}')
                 [ -z "$SELECTED_MODEL" ] && SELECTED_MODEL="Printer"
 
-                PRINTER_NAME="kyocera-Printer"
+                PRINTER_NAME="printer-FS"
                 LPD_URI="lpd://$SELECTED_IP/queue"
 
                 # Resolve Kyocera PPD — prefer ECOSYS M3550idn KPDL driver
