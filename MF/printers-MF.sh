@@ -324,8 +324,8 @@ show_welcome() {
         --title="IT-Aman — Printers-Tools For MF V1.0 " \
         --text="\n<b><big>   IT-Aman — Printers-Tools For MF V1.0   </big></b>\n\n\
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\
-  <b>Developed by:</b>  Mahmoud Rabia Kassem\n\
-  <b>Title:</b>         Specialist IT Admin\n\
+  <b>Made By:</b>  IT Aman Helpdesk Support Team\n\
+  <b>Department:</b>      Information Technology\n\
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n\
 <b>This tool makes work easier</b>\n\n\
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n\
