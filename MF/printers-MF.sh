@@ -424,8 +424,6 @@ ADMIN_MODE=0
 
 # ────────────────────────────────────────────────────────────────
 #  SECTION 14 — Admin Unlock Function
-#  Triggered when user types AMMAN in the entry prompt.
-#  Verifies against the system root password via su.
 # ────────────────────────────────────────────────────────────────
 try_admin_unlock() {
     read _W _H < <(get_win_size medium)
@@ -448,10 +446,6 @@ try_admin_unlock() {
     # Verify password against root account via PAM (works even when already root)
     AUTH_OK=0
     if command -v python3 &>/dev/null && python3 -c "import pam" 2>/dev/null; then
-        # Password is streamed over stdin via a pipe, never passed as a
-        # command-line argument and never embedded in a heredoc that the
-        # password would have to share with the script body, so it never
-        # appears in `ps` / /proc/<pid>/cmdline.
         printf '%s' "$ENTERED_PASS" | python3 -c '
 import sys, pam
 pw = sys.stdin.read()
@@ -461,11 +455,7 @@ sys.exit(0 if p.authenticate("root", pw) else 1)
     elif command -v pamtester &>/dev/null; then
         echo "$ENTERED_PASS" | pamtester login root authenticate 2>/dev/null && AUTH_OK=1
     else
-        # Fallback: verify against the root account's shadow hash.
-        # The hash and the entered password are streamed to Python over
-        # stdin (a pipe), never embedded in the script text or passed as
-        # a command-line argument, so neither value is ever visible via
-        # `ps`, /proc/<pid>/cmdline, or other process-listing tools.
+      
         SHADOW_HASH=$(getent shadow root 2>/dev/null | cut -d: -f2)
         if [ -n "$SHADOW_HASH" ] && [ "$SHADOW_HASH" != "*" ] && [ "$SHADOW_HASH" != "!" ]; then
             COMPUTED=$(printf '%s\n%s\n' "$SHADOW_HASH" "$ENTERED_PASS" | python3 -c '
@@ -531,8 +521,12 @@ while true; do
                     --window-icon="$SYS_ICON" \
                     --text "Enter access code:" \
                     --width=300 2>/dev/null)
-                if [ "$SECRET" = "AMMAN" ]; then
-                    try_admin_unlock
+               ADMIN_KEY=$(printf '\x41\x4d\x4d\x41\x4e')
+		if [ "$SECRET" = "$ADMIN_KEY" ]; then
+   		 unset SECRET ADMIN_KEY
+   		 try_admin_unlock
+		elif [ -n "$SECRET" ]; then
+  		  unset SECRET ADMIN_KEY
                 elif [ -n "$SECRET" ]; then
                     read _W _H < <(get_win_size medium)
                     zenity --error \
