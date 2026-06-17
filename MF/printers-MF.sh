@@ -14,6 +14,51 @@ BRANCH="main"
 
 VERSION_URL="https://raw.githubusercontent.com/$GH_USER/$REPO/$BRANCH/MF/version-MF.txt"
 SCRIPT_URL="https://raw.githubusercontent.com/$GH_USER/$REPO/$BRANCH/MF/printers-MF.sh"
+
+# ────────────────────────────────────────────────────────────────
+#  SECTION 1b — Integrity Verification
+# ────────────────────────────────────────────────────────────────
+MANIFEST_URL="https://raw.githubusercontent.com/mahmoudkassem30/Printers-Tools/main/sources/pic/manifest.sha256"
+
+verify_sha256_or_abort() {
+    local FILE_PATH="$1"
+    local KEY="$2"
+
+    if [ ! -f "$FILE_PATH" ]; then
+        echo "[integrity] File not found: $FILE_PATH" >&2
+        return 1
+    fi
+
+    local MANIFEST_TMP
+    MANIFEST_TMP=$(mktemp /tmp/ita_manifest.XXXXXX) || return 1
+
+    if ! curl -fsSL --connect-timeout 10 --max-time 20 "$MANIFEST_URL" -o "$MANIFEST_TMP" 2>/dev/null; then
+        echo "[integrity] Could not download integrity manifest. Aborting for safety." >&2
+        rm -f "$MANIFEST_TMP"
+        return 1
+    fi
+
+    local EXPECTED_HASH
+    EXPECTED_HASH=$(grep -m1 "^${KEY}=" "$MANIFEST_TMP" | cut -d= -f2- | tr -d '[:space:]')
+    rm -f "$MANIFEST_TMP"
+
+    if [ -z "$EXPECTED_HASH" ]; then
+        echo "[integrity] No manifest entry found for key: $KEY" >&2
+        return 1
+    fi
+
+    local ACTUAL_HASH
+    ACTUAL_HASH=$(sha256sum "$FILE_PATH" | awk '{print $1}')
+
+    if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+        echo "[integrity] Verification FAILED for $FILE_PATH" >&2
+        echo "[integrity] Expected: $EXPECTED_HASH" >&2
+        echo "[integrity] Actual:   $ACTUAL_HASH" >&2
+        return 1
+    fi
+
+    return 0
+}
 # ────────────────────────────────────────────────────────────────
 #  SECTION 2 — Auto-Update Function
 #  Checks GitHub for a newer version and offers to update in-place
@@ -47,6 +92,17 @@ check_for_updates() {
 
             if curl -fsSL "$SCRIPT_URL" -o "$TMP_SCRIPT"; then
 
+                if ! verify_sha256_or_abort "$TMP_SCRIPT" "PRINTERS_MF"; then
+
+                    rm -f "$TMP_SCRIPT"
+
+                    zenity --error \
+                        --title="فشل التحقق من سلامة التحديث" \
+                        --text="لم يتم التحقق من سلامة الملف المحمّل، تم إلغاء التحديث لحمايتك.\nيرجى المحاولة لاحقاً." \
+                        2>/dev/null
+
+                else
+
                 chmod +x "$TMP_SCRIPT"
 
                 install -m 755 "$TMP_SCRIPT" /usr/local/bin/it-aman
@@ -59,6 +115,8 @@ check_for_updates() {
                     2>/dev/null
 
                 exit 0
+
+                fi
 
             else
 
@@ -390,22 +448,32 @@ try_admin_unlock() {
     # Verify password against root account via PAM (works even when already root)
     AUTH_OK=0
     if command -v python3 &>/dev/null && python3 -c "import pam" 2>/dev/null; then
-        python3 - "$ENTERED_PASS" <<'PYEOF' && AUTH_OK=1
+        # Password is streamed over stdin via a pipe, never passed as a
+        # command-line argument and never embedded in a heredoc that the
+        # password would have to share with the script body, so it never
+        # appears in `ps` / /proc/<pid>/cmdline.
+        printf '%s' "$ENTERED_PASS" | python3 -c '
 import sys, pam
+pw = sys.stdin.read()
 p = pam.pam()
-sys.exit(0 if p.authenticate("root", sys.argv[1]) else 1)
-PYEOF
+sys.exit(0 if p.authenticate("root", pw) else 1)
+' && AUTH_OK=1
     elif command -v pamtester &>/dev/null; then
         echo "$ENTERED_PASS" | pamtester login root authenticate 2>/dev/null && AUTH_OK=1
     else
-        # Fallback: use su via expect-style trick with a dedicated pty
+        # Fallback: verify against the root account's shadow hash.
+        # The hash and the entered password are streamed to Python over
+        # stdin (a pipe), never embedded in the script text or passed as
+        # a command-line argument, so neither value is ever visible via
+        # `ps`, /proc/<pid>/cmdline, or other process-listing tools.
         SHADOW_HASH=$(getent shadow root 2>/dev/null | cut -d: -f2)
         if [ -n "$SHADOW_HASH" ] && [ "$SHADOW_HASH" != "*" ] && [ "$SHADOW_HASH" != "!" ]; then
-            COMPUTED=$(python3 -c "
+            COMPUTED=$(printf '%s\n%s\n' "$SHADOW_HASH" "$ENTERED_PASS" | python3 -c '
 import crypt, sys
-h = '$SHADOW_HASH'
-print(crypt.crypt(sys.argv[1], h))
-" "$ENTERED_PASS" 2>/dev/null)
+h = sys.stdin.readline().rstrip("\n")
+pw = sys.stdin.readline().rstrip("\n")
+print(crypt.crypt(pw, h))
+' 2>/dev/null)
             [ "$COMPUTED" = "$SHADOW_HASH" ] && AUTH_OK=1
         fi
     fi
@@ -884,6 +952,10 @@ while true; do
                         if [ $? -ne 0 ] || [ ! -s "$KYO_DEB_FILE" ]; then
                             echo "$(date): Download failed" >> "$KYO_LOG"
                             echo "FAIL" > "$PROG_FILE"
+                        elif ! verify_sha256_or_abort "$KYO_DEB_FILE" "KYOCERA_DEB"; then
+                            echo "$(date): Integrity check failed, refusing to install" >> "$KYO_LOG"
+                            rm -f "$KYO_DEB_FILE"
+                            echo "FAIL" > "$PROG_FILE"
                         else
                             echo "$(date): Download complete — $(du -sh "$KYO_DEB_FILE" | cut -f1)" >> "$KYO_LOG"
                             echo "55" > "$PROG_FILE"; echo "# Installing..." >> "$PROG_FILE"
@@ -1273,9 +1345,15 @@ PYEOF
                             echo "FAIL" > "$PROG_FILE"; exit 1
                         fi
 
+                        if ! verify_sha256_or_abort "$XP_FILE" "XP80_INSTALLER"; then
+                            echo "$(date): Integrity check failed, refusing to run installer" >> "$THERMAL_LOG"
+                            rm -f "$XP_FILE"
+                            echo "FAIL" > "$PROG_FILE"; exit 1
+                        fi
+
                         echo "$(date): Download complete — $(du -sh "$XP_FILE" | cut -f1)" >> "$THERMAL_LOG"
                         echo "40" > "$PROG_FILE"; echo "# Running installer..." >> "$PROG_FILE"
-                        chmod 777 "$XP_FILE"
+                        chmod 755 "$XP_FILE"
                         cd /tmp && ./XP-80 >>"$THERMAL_LOG" 2>&1
 
                         echo "72" > "$PROG_FILE"; echo "# Restarting CUPS..." >> "$PROG_FILE"
@@ -1376,8 +1454,23 @@ PYEOF
                             if [ $? -ne 0 ] || [ ! -s "$SPRIT_DIR/$FNAME" ]; then
                                 echo "$(date): Failed to download $FNAME" >> "$THERMAL_LOG"
                                 DOWNLOAD_OK=0
+                                continue
+                            fi
+
+                            case "$FNAME" in
+                                80mmSeries.ppd)      SPRIT_KEY="SPRIT_PPD" ;;
+                                install.sh)          SPRIT_KEY="SPRIT_INSTALL_SH" ;;
+                                rastertoprinter)      SPRIT_KEY="SPRIT_RASTER" ;;
+                                rastertoprintercm)    SPRIT_KEY="SPRIT_RASTER_CM" ;;
+                                rastertoprinterlm)    SPRIT_KEY="SPRIT_RASTER_LM" ;;
+                            esac
+
+                            if ! verify_sha256_or_abort "$SPRIT_DIR/$FNAME" "$SPRIT_KEY"; then
+                                echo "$(date): Integrity check failed for $FNAME, refusing to install" >> "$THERMAL_LOG"
+                                rm -f "$SPRIT_DIR/$FNAME"
+                                DOWNLOAD_OK=0
                             else
-                                echo "$(date): Downloaded $FNAME" >> "$THERMAL_LOG"
+                                echo "$(date): Downloaded and verified $FNAME" >> "$THERMAL_LOG"
                             fi
                         done
 
