@@ -7,7 +7,7 @@
 # ────────────────────────────────────────────────────────────────
 #  SECTION 1 — Version & Repository Configuration
 # ────────────────────────────────────────────────────────────────
-CURRENT_VERSION="1.1"
+CURRENT_VERSION="1.0"
 GH_USER="mahmoudkassem30"
 REPO="Printers-Tools"
 BRANCH="main"
